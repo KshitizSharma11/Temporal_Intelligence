@@ -1,0 +1,9 @@
+[project]
+name = "temporal-engine"
+version = "0.1.0"
+description = "Deterministic temporal rule engine"
+requires-python = ">=3.10"
+
+dependencies = [
+  "fastapi[standard]"
+]
