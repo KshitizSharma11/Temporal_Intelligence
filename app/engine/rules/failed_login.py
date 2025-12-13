@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import timedelta, datetime
 from app.models.event import Event
 from collections import deque
 class FailedLoginRule:
@@ -10,18 +10,22 @@ class FailedLoginRule:
     def evaluate(self,event:Event):
         if event.event_type != "LOGIN_FAILED":
             return None
-        ip=event.attributes.ip_address
-        if ip not in self.ipstore:
-            self.ipstore[ip]=deque()
-        window=self.ipstore[ip]
-        now=event.event_time
+        id=event.attributes.user_id
+        if id not in self.ipstore:
+            self.ipstore[id]=deque()
+        window=self.ipstore[id]
+        now=event.ingest_time
         window.append(now)
         while window and window[0]<now-self.window:
             window.popleft()
 
         if len(window)>=self.threshold:
-            print (f"limit exceeds for {ip}")
-            return {"message":"exceeded"}
+            cur_time= datetime.now()
+            return {"entity_id":id,
+                    "signal_type":"warning",
+                    "rule_name":"FailedLoginBruteForceFlag",
+                    "createdAt":cur_time,
+                    "evidence":list(window)}
         return None
     
 

@@ -3,7 +3,7 @@ from typing import Optional
 from datetime import datetime, timezone
 
 class Attributes(BaseModel):
-    ip_address: Optional[str] = None
+    user_id: Optional[str] = None
     order_id: Optional[str]= None
     order_status: Optional[str]=None
 
