@@ -6,6 +6,9 @@ class Attributes(BaseModel):
     user_id: Optional[str] = None
     order_id: Optional[str]= None
     order_status: Optional[str]=None
+    process_id: Optional[str]=None
+    process_status: Optional[str]=None
+    process_timeout: Optional[int]=None
 
 class Event(BaseModel):
     event_type: str
