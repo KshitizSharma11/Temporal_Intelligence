@@ -2,15 +2,14 @@ from collections import deque
 from app.models.event import Event
 from datetime import datetime
 class CorrectOrderSequenceRule:
-    def __init__(self):
+    def __init__(self, config: dict):
         # order_id -> deque of statuses
         self.order_seq: dict[str, deque] = {}
 
-        self.VALID_FLOW = [
-            "Payment_Success",
-            "Order_Created",
-            "Order_Shipped"
-        ]
+        self.valid_flow = config['valid_flow']
+        self.severity = config['severity']
+        self.signal_type = config['signal_type']
+        self.rule_name = config['rule_name']
 
     def evaluate(self, event: Event):
         order_id = event.attributes.order_id
@@ -25,29 +24,32 @@ class CorrectOrderSequenceRule:
         seq = self.order_seq[order_id]
         cur_time=datetime.now()
         # First event must be Payment_Success
-        if not seq and status != "Payment_Success":
+        if not seq and status != self.valid_flow[0]:
             return  {"entity_id":order_id,
-                    "signal_type":"warning",
-                    "rule_name":"OrderSequence",
+                    "signal_type":self.signal_type,
+                    "rule_name":self.rule_name,
+                    "severity":self.severity,
                     "createdAt":cur_time,
                     "evidence":["No prior payment"]}
 
         # Check ordering
         if seq:
-            if len(seq) > 2:
+            if len(seq) > len(self.valid_flow) - 1:
                 return {
                     "entity_id":order_id,
-                    "signal_type":"warning",
-                    "rule_name":"OrderSequence",
+                    "signal_type":self.signal_type,
+                    "rule_name":self.rule_name,
+                    "severity":self.severity,
                     "createdAt":cur_time,
                     "evidence":f"status exceeds duplicate or invalid notification for status: {status}"
                 }
-            expected_next = self.VALID_FLOW[len(seq)]
+            expected_next = self.valid_flow[len(seq)]
             if status != expected_next:
                 return {
                     "entity_id":order_id,
-                    "signal_type":"warning",
-                    "rule_name":"OrderSequence",
+                    "signal_type":self.signal_type,
+                    "rule_name":self.rule_name,
+                    "severity":self.severity,
                     "createdAt":cur_time,
                     "evidence":list(seq)
                 }

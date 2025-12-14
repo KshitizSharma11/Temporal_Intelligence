@@ -1,0 +1,7 @@
+valid_flow:
+  - "Payment_Success"
+  - "Order_Created"
+  - "Order_Shipped"
+severity: "low"
+signal_type: "warning"
+rule_name: "OrderSequence"

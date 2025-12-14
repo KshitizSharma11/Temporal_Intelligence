@@ -2,21 +2,25 @@
 from app.models.event import Event
 from datetime import timedelta, datetime
 from app.models.event import Event
-from app.service import event
+
 
 class AbsenceRules:
-    def __init__(self):
+    def __init__(self, config: dict):
         # process_id -> deadline_time
         self.deadlines: dict[str, datetime] = {}
+        self.timeout = timedelta(seconds=config['timeout_seconds'])
+        self.severity = config['severity']
+        self.signal_type = config['signal_type']
+        self.rule_name = config['rule_name']
         
     def evaluate(self, event: Event):
         pid = event.attributes.process_id
         status = event.attributes.process_status
         now = event.ingest_time
-        self.TIMEOUT= timedelta(seconds=event.attributes.process_timeout or 60)
+        timeout = timedelta(seconds=event.attributes.process_timeout or self.timeout.total_seconds())
         if status == "START":
             # register deadline
-            self.deadlines[pid] = now + self.TIMEOUT
+            self.deadlines[pid] = now + timeout
             return None
 
         if status == "END":
@@ -37,10 +41,11 @@ class AbsenceRules:
         for pid in expired:
             signals.append({
                 "entity_id": pid,
-                "signal_type": "warning",
-                "rule_name": "AbsenceRule",
+                "signal_type": self.signal_type,
+                "rule_name": self.rule_name,
+                "severity": self.severity,
                 "createdAt": now,
-                "evidence": f"Process {pid} did not END within timeout {self.TIMEOUT}"
+                "evidence": f"Process {pid} did not END within timeout {self.timeout}"
             })
             del self.deadlines[pid]  # prevent repeated alerts
 

@@ -1,0 +1,6 @@
+threshold: 3
+window_seconds: 60
+cooldown_seconds: 300
+severity: "critical"
+signal_type: "warning"
+rule_name: "FailedLoginBruteForceFlag"

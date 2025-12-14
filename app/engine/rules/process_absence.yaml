@@ -1,0 +1,4 @@
+timeout_seconds: 5
+severity: "high"
+signal_type: "warning"
+rule_name: "AbsenceRule"
